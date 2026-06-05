@@ -12,7 +12,7 @@ export default function Navbar() {
   }
 
   return (
-    <nav className="bg-gray-900 text-white px-6 py-3 flex items-center justify-between">
+    <nav className="sticky top-0 z-50 bg-gray-900 text-white px-6 py-3 flex items-center justify-between">
       <Link to="/" className="flex items-center gap-2 font-bold text-lg">
         <img src={logo} alt="logo" className="w-7 h-7" />
         GeoPlanner

@@ -2,8 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-@import 'leaflet/dist/leaflet.css';
-
 body {
   margin: 0;
   font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
@@ -11,4 +9,16 @@ body {
 
 #root {
   min-height: 100vh;
+}
+
+/* Leaflet — fix dla Tailwind base ktory resetuje img i inne elementy */
+.leaflet-container {
+  height: 100%;
+  width: 100%;
+  z-index: 0;
+}
+
+.leaflet-container img {
+  max-width: none !important;
+  display: inline !important;
 }
