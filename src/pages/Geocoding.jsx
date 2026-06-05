@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet'
 import '../utils/leafletIcons'
 import api from '../api/axios'
+import AuthBanner from '../components/AuthBanner'
 
 function FitBounds({ points }) {
   const map = useMap()
@@ -103,6 +104,7 @@ export default function Geocoding() {
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
+      <AuthBanner />
       <h1 className="text-2xl font-bold mb-1">Geocoding</h1>
       <p className="text-gray-500 text-sm mb-4">
         Add addresses, geocode them, then save as Jobs or Depots with full details.

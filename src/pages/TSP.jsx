@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet'
 import '../utils/leafletIcons'
 import api from '../api/axios'
+import AuthBanner from '../components/AuthBanner'
 
 // komponent pomocniczy — przesuwa widok mapy gdy pojawia sie wynik
 function FitBounds({ points }) {
@@ -27,6 +28,7 @@ export default function TSP() {
   const [error, setError] = useState('')
 
   useEffect(() => {
+    if (!localStorage.getItem('access_token')) return
     api.get('/depots/').then(r => setDepots(r.data)).catch(() => {})
     api.get('/jobs/').then(r => setJobs(r.data)).catch(() => {})
   }, [])
@@ -83,6 +85,7 @@ export default function TSP() {
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
+      <AuthBanner />
       <h1 className="text-2xl font-bold mb-1">TSP — Travelling Salesman Problem</h1>
       <p className="text-gray-500 text-sm mb-6">
         Select a depot and jobs, then solve to find the shortest route visiting all points.
