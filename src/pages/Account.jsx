@@ -7,6 +7,7 @@ export default function Account() {
   const [jobs, setJobs] = useState([])
   const [depots, setDepots] = useState([])
   const [routes, setRoutes] = useState([])
+  const [vehicles, setVehicles] = useState([])
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -18,6 +19,7 @@ export default function Account() {
     api.get('/jobs/?include_archived=1').then(r => setJobs(r.data)).catch(() => {})
     api.get('/depots/?include_archived=1').then(r => setDepots(r.data)).catch(() => {})
     api.get('/routes/').then(r => setRoutes(r.data)).catch(() => {})
+    api.get('/vehicles/').then(r => setVehicles(r.data)).catch(() => {})
   }
 
   async function toggleActive(type, item) {
@@ -36,6 +38,12 @@ export default function Account() {
   async function removeRoute(id) {
     if (!window.confirm('Delete this route permanently?')) return
     await api.delete(`/routes/${id}/`)
+    fetchAll()
+  }
+
+  async function removeVehicle(id) {
+    if (!window.confirm('Delete this vehicle permanently?')) return
+    await api.delete(`/vehicles/${id}/`)
     fetchAll()
   }
 
@@ -68,9 +76,15 @@ export default function Account() {
         >
           Routes ({routes.length})
         </button>
+        <button
+          onClick={() => setTab('vehicles')}
+          className={`px-6 py-2 text-sm font-semibold transition-colors ${tab === 'vehicles' ? 'bg-purple-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
+        >
+          Vehicles ({vehicles.length})
+        </button>
       </div>
 
-      {tab !== 'routes' && (
+      {(tab === 'jobs' || tab === 'depots') && (
         <>
           <Section
             title="Active"
@@ -98,6 +112,37 @@ export default function Account() {
       {tab === 'routes' && (
         <RoutesSection routes={routes} onDelete={removeRoute} />
       )}
+
+      {tab === 'vehicles' && (
+        <VehiclesSection vehicles={vehicles} onDelete={removeVehicle} />
+      )}
+    </div>
+  )
+}
+
+function VehiclesSection({ vehicles, onDelete }) {
+  if (vehicles.length === 0) return <p className="text-gray-400 text-sm">No vehicles found.</p>
+  return (
+    <div className="bg-white border rounded-lg overflow-hidden divide-y">
+      {vehicles.map(v => (
+        <div key={v.id} className="flex items-center justify-between px-4 py-3 gap-4">
+          <div className="min-w-0">
+            <p className="font-medium text-sm">{v.name}</p>
+            <p className="text-xs text-gray-400 mt-0.5">
+              {v.vehicle_type_name}
+              {v.capacity ? ` · capacity ${v.capacity}` : ''}
+              {v.working_time_minutes ? ` · ${v.working_time_minutes} min` : ''}
+              {v.starting_time ? ` · starts ${v.starting_time}` : ''}
+            </p>
+          </div>
+          <button
+            onClick={() => onDelete(v.id)}
+            className="text-xs px-3 py-1 rounded border border-red-300 text-red-500 hover:bg-red-50 font-medium transition-colors shrink-0"
+          >
+            Delete
+          </button>
+        </div>
+      ))}
     </div>
   )
 }
