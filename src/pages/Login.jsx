@@ -14,6 +14,7 @@ export default function Login() {
       const res = await api.post('/token/', form)
       localStorage.setItem('access_token', res.data.access)
       localStorage.setItem('refresh_token', res.data.refresh)
+      localStorage.setItem('username', form.username)
       navigate('/')
     } catch {
       setError('Invalid username or password.')

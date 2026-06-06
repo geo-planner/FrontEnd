@@ -136,7 +136,7 @@ export default function Geocoding() {
             <span className="flex-1">Address</span>
             {mode === 'depots' && <span className="w-36">Depot name</span>}
             {mode === 'jobs' && <>
-              <span className="w-24">Job code</span>
+              <span className="w-24">Name</span>
               <span className="w-36">Service time (min)</span>
               <span className="w-20">Demand</span>
             </>}
@@ -182,7 +182,7 @@ export default function Geocoding() {
                     <>
                       <input
                         type="text"
-                        placeholder="Code"
+                        placeholder="Name"
                         value={row.job_code}
                         onChange={e => updateRow(i, 'job_code', e.target.value)}
                         className="w-24 border rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"

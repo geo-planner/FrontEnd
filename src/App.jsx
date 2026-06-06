@@ -6,6 +6,7 @@ import Register from './pages/Register'
 import Geocoding from './pages/Geocoding'
 import TSP from './pages/TSP'
 import VRP from './pages/VRP'
+import Account from './pages/Account'
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
         <Route path="/geocoding" element={<Geocoding />} />
         <Route path="/tsp" element={<TSP />} />
         <Route path="/vrp" element={<VRP />} />
+        <Route path="/account" element={<Account />} />
       </Routes>
     </BrowserRouter>
   )

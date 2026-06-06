@@ -1,13 +1,15 @@
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
 import logo from '../assets/logo.png'
 
 export default function Navbar() {
   const navigate = useNavigate()
-  const token = localStorage.getItem('access_token')
+  useLocation() // re-render przy każdej zmianie trasy
+  const username = localStorage.getItem('username')
 
   function handleLogout() {
     localStorage.removeItem('access_token')
     localStorage.removeItem('refresh_token')
+    localStorage.removeItem('username')
     navigate('/')
   }
 
@@ -23,13 +25,21 @@ export default function Navbar() {
         <Link to="/tsp" className="hover:text-green-400 transition-colors">TSP</Link>
         <Link to="/vrp" className="hover:text-green-400 transition-colors">VRP</Link>
 
-        {token ? (
-          <button
-            onClick={handleLogout}
-            className="bg-red-600 hover:bg-red-700 px-4 py-1.5 rounded transition-colors"
-          >
-            Logout
-          </button>
+        {username ? (
+          <div className="flex items-center gap-3">
+            <Link
+              to="/account"
+              className="text-sm text-gray-300 hover:text-white transition-colors"
+            >
+              {username}
+            </Link>
+            <button
+              onClick={handleLogout}
+              className="bg-red-600 hover:bg-red-700 px-4 py-1.5 rounded text-sm transition-colors"
+            >
+              Logout
+            </button>
+          </div>
         ) : (
           <Link
             to="/login"
