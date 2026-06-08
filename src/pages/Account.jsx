@@ -8,6 +8,7 @@ export default function Account() {
   const [depots, setDepots] = useState([])
   const [routes, setRoutes] = useState([])
   const [vehicles, setVehicles] = useState([])
+  const [vehicleTypes, setVehicleTypes] = useState([])
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -20,6 +21,7 @@ export default function Account() {
     api.get('/depots/?include_archived=1').then(r => setDepots(r.data)).catch(() => {})
     api.get('/routes/').then(r => setRoutes(r.data)).catch(() => {})
     api.get('/vehicles/').then(r => setVehicles(r.data)).catch(() => {})
+    api.get('/vehicle-types/').then(r => setVehicleTypes(r.data)).catch(() => {})
   }
 
   async function toggleActive(type, item) {
@@ -114,35 +116,158 @@ export default function Account() {
       )}
 
       {tab === 'vehicles' && (
-        <VehiclesSection vehicles={vehicles} onDelete={removeVehicle} />
+        <VehiclesSection vehicles={vehicles} vehicleTypes={vehicleTypes} onDelete={removeVehicle} onAdd={fetchAll} />
       )}
     </div>
   )
 }
 
-function VehiclesSection({ vehicles, onDelete }) {
-  if (vehicles.length === 0) return <p className="text-gray-400 text-sm">No vehicles found.</p>
+const EMPTY_VEHICLE = { name: '', vehicle_type: '', capacity: '', starting_time: '', working_time_minutes: '' }
+
+function VehiclesSection({ vehicles, vehicleTypes, onDelete, onAdd }) {
+  const [showForm, setShowForm] = useState(false)
+  const [form, setForm] = useState(EMPTY_VEHICLE)
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
+
+  async function handleAdd(e) {
+    e.preventDefault()
+    if (!form.name || !form.vehicle_type) return setError('Name and type are required.')
+    setSaving(true)
+    setError('')
+    try {
+      await api.post('/vehicles/', {
+        name: form.name,
+        vehicle_type: parseInt(form.vehicle_type),
+        ...(form.capacity           ? { capacity: parseInt(form.capacity) } : {}),
+        ...(form.starting_time      ? { starting_time: form.starting_time } : {}),
+        ...(form.working_time_minutes ? { working_time_minutes: parseInt(form.working_time_minutes) } : {}),
+      })
+      setForm(EMPTY_VEHICLE)
+      setShowForm(false)
+      onAdd()
+    } catch {
+      setError('Error saving vehicle.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
   return (
-    <div className="bg-white border rounded-lg overflow-hidden divide-y">
-      {vehicles.map(v => (
-        <div key={v.id} className="flex items-center justify-between px-4 py-3 gap-4">
-          <div className="min-w-0">
-            <p className="font-medium text-sm">{v.name}</p>
-            <p className="text-xs text-gray-400 mt-0.5">
-              {v.vehicle_type_name}
-              {v.capacity ? ` · capacity ${v.capacity}` : ''}
-              {v.working_time_minutes ? ` · ${v.working_time_minutes} min` : ''}
-              {v.starting_time ? ` · starts ${v.starting_time}` : ''}
-            </p>
-          </div>
-          <button
-            onClick={() => onDelete(v.id)}
-            className="text-xs px-3 py-1 rounded border border-red-300 text-red-500 hover:bg-red-50 font-medium transition-colors shrink-0"
-          >
-            Delete
-          </button>
+    <div className="space-y-3">
+      {vehicles.length === 0 && !showForm && (
+        <p className="text-gray-400 text-sm">No vehicles found.</p>
+      )}
+
+      {vehicles.length > 0 && (
+        <div className="bg-white border rounded-lg overflow-hidden divide-y">
+          {vehicles.map(v => (
+            <div key={v.id} className="flex items-center justify-between px-4 py-3 gap-4">
+              <div className="min-w-0">
+                <p className="font-medium text-sm">{v.name}</p>
+                <p className="text-xs text-gray-400 mt-0.5">
+                  {v.vehicle_type_name}
+                  {v.capacity           ? ` · capacity ${v.capacity}` : ''}
+                  {v.working_time_minutes ? ` · ${v.working_time_minutes} min` : ''}
+                  {v.starting_time      ? ` · starts ${v.starting_time}` : ''}
+                </p>
+              </div>
+              <button
+                onClick={() => onDelete(v.id)}
+                className="text-xs px-3 py-1 rounded border border-red-300 text-red-500 hover:bg-red-50 font-medium transition-colors shrink-0"
+              >
+                Delete
+              </button>
+            </div>
+          ))}
         </div>
-      ))}
+      )}
+
+      {showForm && (
+        <form onSubmit={handleAdd} className="bg-white border rounded-lg p-4 space-y-3">
+          <h3 className="text-sm font-semibold text-gray-700">New vehicle</h3>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs text-gray-500 mb-1">Name *</label>
+              <input
+                type="text"
+                placeholder="e.g. Van #1"
+                value={form.name}
+                onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+                className="w-full border rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-gray-500 mb-1">Type *</label>
+              <select
+                value={form.vehicle_type}
+                onChange={e => setForm(f => ({ ...f, vehicle_type: e.target.value }))}
+                className="w-full border rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"
+              >
+                <option value="">— select —</option>
+                {vehicleTypes.map(t => (
+                  <option key={t.id} value={t.id}>{t.name}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs text-gray-500 mb-1">Capacity</label>
+              <input
+                type="number"
+                placeholder="e.g. 100"
+                value={form.capacity}
+                onChange={e => setForm(f => ({ ...f, capacity: e.target.value }))}
+                className="w-full border rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-gray-500 mb-1">Working time (min)</label>
+              <input
+                type="number"
+                placeholder="e.g. 480"
+                value={form.working_time_minutes}
+                onChange={e => setForm(f => ({ ...f, working_time_minutes: e.target.value }))}
+                className="w-full border rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-gray-500 mb-1">Starting time</label>
+              <input
+                type="time"
+                value={form.starting_time}
+                onChange={e => setForm(f => ({ ...f, starting_time: e.target.value }))}
+                className="w-full border rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"
+              />
+            </div>
+          </div>
+          {error && <p className="text-red-500 text-xs">{error}</p>}
+          <div className="flex gap-2">
+            <button
+              type="submit"
+              disabled={saving}
+              className="bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 text-white px-4 py-1.5 rounded text-sm font-semibold transition-colors"
+            >
+              {saving ? 'Saving...' : 'Save'}
+            </button>
+            <button
+              type="button"
+              onClick={() => { setShowForm(false); setForm(EMPTY_VEHICLE); setError('') }}
+              className="border px-4 py-1.5 rounded text-sm text-gray-600 hover:bg-gray-50 transition-colors"
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
+      )}
+
+      {!showForm && (
+        <button
+          onClick={() => setShowForm(true)}
+          className="w-full text-sm text-gray-400 hover:text-gray-600 border border-dashed border-gray-300 hover:border-gray-400 rounded-lg py-2 transition-colors"
+        >
+          + Add vehicle
+        </button>
+      )}
     </div>
   )
 }
