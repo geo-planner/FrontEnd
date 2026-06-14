@@ -122,7 +122,15 @@ export default function Account() {
   )
 }
 
-const EMPTY_VEHICLE = { name: '', vehicle_type: '', capacity: '', starting_time: '', working_time_minutes: '' }
+const BACKEND_URL = 'http://127.0.0.1:8000'
+const EMPTY_VEHICLE = { name: '', vehicle_type: '', capacity: '', starting_time: '', working_time_minutes: '', photo: null }
+
+// DRF może zwrócić URL relatywny lub absolutny — ta funkcja zawsze daje pełny URL
+function photoUrl(path) {
+  if (!path) return null
+  if (path.startsWith('http')) return path
+  return BACKEND_URL + path
+}
 
 function VehiclesSection({ vehicles, vehicleTypes, onDelete, onAdd }) {
   const [showForm, setShowForm] = useState(false)
@@ -136,13 +144,16 @@ function VehiclesSection({ vehicles, vehicleTypes, onDelete, onAdd }) {
     setSaving(true)
     setError('')
     try {
-      await api.post('/vehicles/', {
-        name: form.name,
-        vehicle_type: parseInt(form.vehicle_type),
-        ...(form.capacity           ? { capacity: parseInt(form.capacity) } : {}),
-        ...(form.starting_time      ? { starting_time: form.starting_time } : {}),
-        ...(form.working_time_minutes ? { working_time_minutes: parseInt(form.working_time_minutes) } : {}),
-      })
+      // Pliki wymagają FormData zamiast zwykłego JSON
+      const data = new FormData()
+      data.append('name', form.name)
+      data.append('vehicle_type', parseInt(form.vehicle_type))
+      if (form.capacity)             data.append('capacity', parseInt(form.capacity))
+      if (form.starting_time)        data.append('starting_time', form.starting_time)
+      if (form.working_time_minutes) data.append('working_time_minutes', parseInt(form.working_time_minutes))
+      if (form.photo)                data.append('photo', form.photo)
+
+      await api.post('/vehicles/', data, { headers: { 'Content-Type': 'multipart/form-data' } })
       setForm(EMPTY_VEHICLE)
       setShowForm(false)
       onAdd()
@@ -164,8 +175,8 @@ function VehiclesSection({ vehicles, vehicleTypes, onDelete, onAdd }) {
           {vehicles.map(v => (
             <div key={v.id} className="flex items-center justify-between px-4 py-3 gap-4">
               <div className="flex items-center gap-3 min-w-0">
-                {v.photo
-                  ? <img src={v.photo} alt={v.name} className="w-10 h-10 rounded object-cover shrink-0 border" />
+                {photoUrl(v.photo)
+                  ? <img src={photoUrl(v.photo)} alt={v.name} className="w-10 h-10 rounded object-cover shrink-0 border" />
                   : <div className="w-10 h-10 rounded bg-gray-100 border flex items-center justify-center text-gray-300 shrink-0 text-lg">🚗</div>
                 }
                 <div className="min-w-0">
@@ -243,6 +254,15 @@ function VehiclesSection({ vehicles, vehicleTypes, onDelete, onAdd }) {
                 value={form.starting_time}
                 onChange={e => setForm(f => ({ ...f, starting_time: e.target.value }))}
                 className="w-full border rounded px-2 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"
+              />
+            </div>
+            <div className="col-span-2">
+              <label className="block text-xs text-gray-500 mb-1">Photo (optional)</label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={e => setForm(f => ({ ...f, photo: e.target.files[0] || null }))}
+                className="w-full text-sm text-gray-500 file:mr-3 file:py-1 file:px-3 file:rounded file:border file:border-gray-300 file:text-xs file:bg-white hover:file:bg-gray-50"
               />
             </div>
           </div>
