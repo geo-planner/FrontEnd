@@ -163,14 +163,20 @@ function VehiclesSection({ vehicles, vehicleTypes, onDelete, onAdd }) {
         <div className="bg-white border rounded-lg overflow-hidden divide-y">
           {vehicles.map(v => (
             <div key={v.id} className="flex items-center justify-between px-4 py-3 gap-4">
-              <div className="min-w-0">
-                <p className="font-medium text-sm">{v.name}</p>
-                <p className="text-xs text-gray-400 mt-0.5">
-                  {v.vehicle_type_name}
-                  {v.capacity           ? ` · capacity ${v.capacity}` : ''}
-                  {v.working_time_minutes ? ` · ${v.working_time_minutes} min` : ''}
-                  {v.starting_time      ? ` · starts ${v.starting_time}` : ''}
-                </p>
+              <div className="flex items-center gap-3 min-w-0">
+                {v.photo
+                  ? <img src={v.photo} alt={v.name} className="w-10 h-10 rounded object-cover shrink-0 border" />
+                  : <div className="w-10 h-10 rounded bg-gray-100 border flex items-center justify-center text-gray-300 shrink-0 text-lg">🚗</div>
+                }
+                <div className="min-w-0">
+                  <p className="font-medium text-sm">{v.name}</p>
+                  <p className="text-xs text-gray-400 mt-0.5">
+                    {v.vehicle_type_name}
+                    {v.capacity             ? ` · capacity ${v.capacity}` : ''}
+                    {v.working_time_minutes ? ` · ${v.working_time_minutes} min` : ''}
+                    {v.starting_time        ? ` · starts ${v.starting_time}` : ''}
+                  </p>
+                </div>
               </div>
               <button
                 onClick={() => onDelete(v.id)}
