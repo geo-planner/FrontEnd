@@ -1,8 +1,25 @@
 import { useState, useEffect } from 'react'
-import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet'
+import { MapContainer, TileLayer, Marker, Popup, Polyline, CircleMarker, useMap } from 'react-leaflet'
+import L from 'leaflet'
 import '../utils/leafletIcons'
 import api from '../api/axios'
 import AuthBanner from '../components/AuthBanner'
+
+// Niebieskie kółko z numerem (lub bez) dla jobów
+function jobIcon(number = null) {
+  const label = number !== null ? number : ''
+  return L.divIcon({
+    html: `<div style="
+      width:28px;height:28px;border-radius:50%;
+      background:#2563eb;border:2px solid #1d4ed8;
+      color:white;font-size:12px;font-weight:700;
+      display:flex;align-items:center;justify-content:center;
+    ">${label}</div>`,
+    className: '',
+    iconSize: [28, 28],
+    iconAnchor: [14, 14],
+  })
+}
 
 // komponent pomocniczy — przesuwa widok mapy gdy pojawia sie wynik
 function FitBounds({ points }) {
@@ -213,26 +230,33 @@ export default function TSP() {
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
             />
 
-            {/* depot marker */}
+            {/* depot marker — czerwone kółko */}
             {depot && (
-              <Marker position={[depot.latitude, depot.longitude]}>
+              <CircleMarker
+                center={[depot.latitude, depot.longitude]}
+                radius={10}
+                fillColor="#dc2626"
+                color="#991b1b"
+                fillOpacity={0.9}
+                weight={2}
+              >
                 <Popup><strong>Depot:</strong> {depot.name}</Popup>
-              </Marker>
+              </CircleMarker>
             )}
 
-            {/* markery zaznaczonych jobow przed solve */}
+            {/* markery jobów przed solve — niebieskie kółka bez numeru */}
             {!result && selectedJobObjects.map(j => (
-              <Marker key={j.id} position={[j.latitude, j.longitude]}>
+              <Marker key={j.id} position={[j.latitude, j.longitude]} icon={jobIcon()}>
                 <Popup>
-                  {j.job_code && <><span className="text-gray-500">[{j.job_code}]</span><br /></>}
+                  {j.job_code && <><span className="text-gray-500">{j.job_code}</span><br /></>}
                   {j.address}
                 </Popup>
               </Marker>
             ))}
 
-            {/* markery przystankow z numerami (po solve) */}
+            {/* markery przystanków po solve — niebieskie kółka z numerem kolejności */}
             {result?.stops.map(s => (
-              <Marker key={s.id} position={[s.job_latitude, s.job_longitude]}>
+              <Marker key={s.id} position={[s.job_latitude, s.job_longitude]} icon={jobIcon(s.sequence)}>
                 <Popup>
                   <strong>Stop #{s.sequence}</strong><br />{s.job_address}
                   {s.job_code && <><br /><span className="text-gray-500">{s.job_code}</span></>}
