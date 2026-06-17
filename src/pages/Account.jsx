@@ -393,10 +393,22 @@ function Section({ title, items, tab, onToggle, onDelete, muted }) {
           <div key={item.id} className={`flex items-center justify-between px-4 py-3 gap-4 ${muted ? 'opacity-60' : ''}`}>
             <div className="min-w-0">
               {tab === 'depots' && (
-                <p className="font-medium text-sm truncate">{item.name}</p>
+                <p className="font-medium text-sm truncate">
+                  {item.name}
+                  {item.latitude && item.longitude && (
+                    <span className="text-xs text-gray-400 font-normal ml-2">
+                      [{item.latitude.toFixed(4)}; {item.longitude.toFixed(4)}]
+                    </span>
+                  )}
+                </p>
               )}
-              {tab === 'jobs' && item.job_code && (
-                <p className="text-xs text-gray-400 mb-0.5">[{item.job_code}]</p>
+              {tab === 'jobs' && (
+                <p className="text-xs text-gray-400 mb-0.5">
+                  {item.job_code && <span>{item.job_code}</span>}
+                  {item.latitude && item.longitude && (
+                    <span className="ml-2">[{item.latitude.toFixed(4)}; {item.longitude.toFixed(4)}]</span>
+                  )}
+                </p>
               )}
               <p className={`text-sm truncate ${tab === 'depots' ? 'text-gray-500 text-xs' : 'font-medium'}`}>
                 {item.address}
